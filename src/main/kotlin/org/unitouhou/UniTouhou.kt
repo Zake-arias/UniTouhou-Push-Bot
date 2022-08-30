@@ -107,18 +107,24 @@ object UniTouhou : KotlinPlugin(
                     airingQueue.iterator().forEach { m -> subject.sendMessage(m.deserializeMiraiCode()) }
                 }
                 startsWith("${commandPrefix}加入队列"){
-                    subject.sendMessage("请在命令后跟随要发送的文案！")
+                    bot.groups[adminGroup]?.settings!!.isMuteAll = true
 
+                    subject.sendMessage("请在命令后跟随要发送的文案！")
                     val tmp = selectMessages{
                         has<PlainText>{ return@has message }
                         default { return@default message }
-                        timeout(30_000){ PlainText("请在30秒内输入文案！").toMessageChain()  }
+                        timeout(30_000){ subject.sendMessage(PlainText("请在30秒内输入文案！")); PlainText( "").toMessageChain()}
                     }
 
                     if (!(tmp.content.isEmpty()||tmp.content.isBlank())){
                         airingQueue.add(tmp.serializeToMiraiCode())
                         subject.sendMessage("存贮完毕")
+                    }else{
+                        subject.sendMessage("文案不能为空白！")
                     }
+
+                    bot.groups[adminGroup]?.settings!!.isMuteAll = false
+
                 }
                 startsWith("${commandPrefix}清空队列"){
                     airingQueue.clear()
